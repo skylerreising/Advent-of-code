@@ -1124,6 +1124,99 @@ export function safeOrUnsafe(data: string): number {
   return count;
 }
 
+export function safeOrUnsafe2(data: string): number {
+  const reportData = produceReports(data);
+
+  let count = 0;
+
+  reportData.reports.forEach((report) => {
+    // bool for if count can be increased
+    let countCanBeIncreased = false;
+
+    countCanBeIncreased = checkReport(report, report.length);
+
+    countCanBeIncreased ? count++ : count;
+  });
+
+  return count;
+}
+
+export function checkReport(
+  report: number[],
+  originalReportLength: number
+): boolean {
+  let direction: string;
+
+  // set direction
+  if (report[0] < report[1]) {
+    direction = "up";
+  } else if (report[0] > report[1]) {
+    direction = "down";
+  } else {
+    direction = "no direction";
+  }
+
+  // check that the number 2 spots away isn't the same, otherwise return false
+  if (direction === "no direction") {
+    if (report[0] !== report[2]) {
+      // splice report
+      report.splice(1, 1);
+
+      // set direction
+      if (report[0] < report[1]) {
+        direction = "up";
+      } else if (report[0] > report[1]) {
+        direction = "down";
+      } else {
+        direction = "no direction";
+      }
+
+      // recursive call
+      if (originalReportLength <= report.length) {
+        checkReport(report, originalReportLength);
+      }
+    } else {
+      console.log(`This won't pass: ${report}`);
+      return false;
+    }
+  }
+
+  if (direction !== "no direction") {
+    report.forEach((level, index) => {
+      // console.log(report);
+      if (index !== report.length - 1) {
+        // difference
+        let difference = Math.abs(level - report[index + 1]);
+        // let isUp: boolean = direction === "up" ? true : false;
+
+        // level check
+        if (direction === "up") {
+          // level has to be less than next
+          // differ by 1-3
+          // prettier-ignore
+          if (!((difference >= 1 && difference <= 3) && level < report[index + 1])) {
+            report.splice(index + 1, 1);
+            checkReport(report, originalReportLength);
+          }
+        }
+
+        if (direction === "down") {
+          // level has to be greater than next
+          // differ by 1-3
+          // prettier-ignore
+          if (!((difference >= 1 && difference <= 3) && level > report[index + 1])) {
+            report.splice(index + 1, 1);
+            checkReport(report, originalReportLength);
+          }
+        }
+      }
+    });
+  }
+
+  // console.log(`Report length after loop: ${report.length}`);
+  return originalReportLength <= report.length + 1;
+}
+
 export function produceReports(data: string): ReportData {
   // turn the data into reportData
   let arrayOfNumberArrays = data
@@ -1133,7 +1226,7 @@ export function produceReports(data: string): ReportData {
   return { reports: arrayOfNumberArrays };
 }
 
-console.log(safeOrUnsafe(data));
+console.log(safeOrUnsafe2(data));
 
 export interface ReportData {
   reports: number[][];
